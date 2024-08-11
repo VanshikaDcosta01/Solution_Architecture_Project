@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Book Info</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+        .center-box {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            width: 400px;
+        }
+        .center-box h2 {
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .response-message {
+            margin-top: 20px;
+            color: #ff4b5c; /* Red color for error messages */
+        }
+    </style>
+</head>
+<body>
+    <div class="center-box">
+        <h2>Update Book Info</h2>
+        <form id="updateBookForm">
+            <div class="form-group">
+                <label for="bookSelect">Select Book</label>
+                <select id="bookSelect" class="form-control" required>
+                    <option value="">Select a book</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="authors">Authors</label>
+                <input type="text" class="form-control" id="authors" name="authors" required>
+            </div>
+            <div class="form-group">
+                <label for="publisher">Publisher</label>
+                <input type="text" class="form-control" id="publisher" name="publisher" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="text" class="form-control" id="year" name="year" required>
+            </div>
+            <button type="submit" class="btn-custom">Update Book</button>
+        </form>
+        <div id="responseMessage" class="response-message"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the list of books to populate the dropdown
+            fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Parse the body if it is a string
+                if (typeof data.body === 'string') {
+                    data = JSON.parse(data.body);
+                }
+
+                const bookSelect = document.getElementById('bookSelect');
+                data.forEach(book => {
+                    const option = document.createElement('option');
+                    option.value = book.Title;
+                    option.textContent = book.Title;
+                    bookSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+                document.getElementById('responseMessage').innerText = 'Error fetching books: ' + error.message;
+            });
+        });
+
+        document.getElementById('updateBookForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const title = document.getElementById('bookSelect').value;
+            const authors = document.getElementById('authors').value;
+            const publisher = document.getElementById('publisher').value;
+            const year = document.getElementById('year').value;
+
+            const data = {
+                Title: title,
+                Authors: authors,
+                Publisher: publisher,
+                Year: year
+            };
+
+            // First, fetch the list of books to check if the title exists
+            fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(bookList => {
+                if (typeof bookList.body === 'string') {
+                    bookList = JSON.parse(bookList.body);
+                }
+
+                // Check if the title exists in the book list
+                const bookExists = bookList.some(book => book.Title === title);
+
+                if (bookExists) {
+                    // If the book exists, proceed to update it
+                    return fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // If the book doesn't exist, throw an error
+                    throw new Error('Book not found in inventory');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (typeof data.body === 'string') {
+                    try {
+                        const parsedBody = JSON.parse(data.body);
+                        return parsedBody;
+                    } catch (error) {
+                        throw new Error('Invalid JSON in response body');
+                    }
+                }
+                return data;
+            })
+            .then(data => {
+                console.log('API Response:', data);
+
+                if (data.message) {
+                    document.getElementById('responseMessage').innerText = data.message;
+                } else {
+                    document.getElementById('responseMessage').innerText = 'Update Done Successfully';
+                }
+
+                // Reset the form
+                document.getElementById('updateBookForm').reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = `Error: ${error.message}`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add a New Book</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+        .center-box {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            width: 400px;
+        }
+        .center-box h2 {
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="center-box">
+        <h2>Add a New Book</h2>
+        <form id="addBookForm">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="authors">Authors</label>
+                <input type="text" class="form-control" id="authors" name="authors" required>
+            </div>
+            <div class="form-group">
+                <label for="publisher">Publisher</label>
+                <input type="text" class="form-control" id="publisher" name="publisher" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="text" class="form-control" id="year" name="year" required>
+            </div>
+            <button type="submit" class="btn-custom">Add Book</button>
+        </form>
+        <div id="responseMessage" style="margin-top: 20px;"></div>
+    </div>
+    <script>
+        document.getElementById('addBookForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const title = document.getElementById('title').value;
+            const authors = document.getElementById('authors').value;
+            const publisher = document.getElementById('publisher').value;
+            const year = document.getElementById('year').value;
+
+            const data = {
+                Title: title,
+                Authors: authors,
+                Publisher: publisher,
+                Year: year
+            };
+
+            fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('responseMessage').innerText = 'Book added successfully!';
+                document.getElementById('addBookForm').reset();
+            })
+            .catch(error => {
+                console.error('Error adding book:', error);
+                document.getElementById('responseMessage').innerText = `Error adding book: ${error.message}`;
+            });
+        });
+    </script>
+</body>
+</html>

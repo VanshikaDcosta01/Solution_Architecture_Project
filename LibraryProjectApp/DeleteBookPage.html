@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Book</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+        .center-box {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            width: 400px;
+        }
+        .center-box h2 {
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .response-message {
+            margin-top: 20px;
+            color: #ff4b5c;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-box">
+        <h2>Delete Book</h2>
+        <form id="deleteBookForm">
+            <div class="form-group">
+                <label for="bookSelect">Select Book</label>
+                <select id="bookSelect" class="form-control" required>
+                    <option value="">Select a book</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-custom">Delete Book</button>
+        </form>
+        <div id="responseMessage" class="response-message"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the list of books to populate the dropdown
+            fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Parse the body if it is a string
+                if (typeof data.body === 'string') {
+                    data = JSON.parse(data.body);
+                }
+
+                const bookSelect = document.getElementById('bookSelect');
+                data.forEach(book => {
+                    const option = document.createElement('option');
+                    option.value = book.Title;
+                    option.textContent = book.Title;
+                    bookSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+                document.getElementById('responseMessage').innerText = 'Error fetching books: ' + error.message;
+            });
+        });
+
+        document.getElementById('deleteBookForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const title = document.getElementById('bookSelect').value;
+
+            if (!title) {
+                document.getElementById('responseMessage').innerText = 'Please select a book to delete.';
+                return;
+            }
+
+            fetch('https://tcjqnzeh12.execute-api.us-east-1.amazonaws.com/Prod', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ Title: title })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response data:', data);  // Log the data to check its content
+                if (data.message && data.message === 'Book not found') {
+                    document.getElementById('responseMessage').innerText = 'Book title not found in inventory.';
+                } else if (data.success && data.success === true) {
+                    document.getElementById('responseMessage').innerText = 'Book deleted successfully!';
+                    // Optionally, remove the deleted book from the dropdown
+                    const bookSelect = document.getElementById('bookSelect');
+                    for (let i = 0; i < bookSelect.options.length; i++) {
+                        if (bookSelect.options[i].value === title) {
+                            bookSelect.remove(i);
+                            break;
+                        }
+                    }
+                } else {
+                    document.getElementById('responseMessage').innerText = 'Book Deleted Successfully From Inventory';
+                }
+                document.getElementById('deleteBookForm').reset();
+            })
+            .catch(error => {
+                console.error('Error deleting book:', error);
+                document.getElementById('responseMessage').innerText = `Error deleting book: ${error.message}`;
+            });
+        });
+    </script>
+</body>
+</html>

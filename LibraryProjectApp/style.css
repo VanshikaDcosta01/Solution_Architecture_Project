@@ -1,0 +1,42 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container-fluid {
+    height: 100vh;
+}
+
+.bg-red {
+    background-color: #e74c3c;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.btn-light {
+    background-color: #ffffff;
+    color: #e74c3c;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.25rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-light:hover {
+    background-color: #e74c3c;
+    color: #ffffff;
+}
+
+.social-icons a {
+    color: #ffffff;
+    margin: 0 10px;
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+
+.social-icons a:hover {
+    color: #d4d4d4;
+}
